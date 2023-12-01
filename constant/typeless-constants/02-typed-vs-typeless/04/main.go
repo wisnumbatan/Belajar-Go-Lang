@@ -15,4 +15,5 @@ func main() {
 	b = byte(min)
 
 	fmt.Println(i, f, b, j, r)
+	fmt.Printf("%T %T %T %T %T\n", i, f, b, j, r)
 }
