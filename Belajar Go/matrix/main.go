@@ -4,111 +4,110 @@ import (
 	"fmt"
 )
 
-func metodeSimplex(c []float64, A [][]float64, b []float64) ([]float64, float64) {
-	// Inisialisasi variabel
-	// m mewakili banyak baris dari A
-	// n mewakili banyak kolom dari A
+func simplexMethod(c []float64, A [][]float64, b []float64) ([]float64, float64) {
+	// Initialize variables
 	m := len(A)
 	n := len(A[0])
 
-	// Membuat matriks kosong
-	// m = 2, n = 2
-	// Baris = 3 dan kolom = 5
-	matriks := make([][]float64, m+1)
-	for i := range matriks {
-		matriks[i] = make([]float64, m+n+1)
+	// Create an empty matrix
+	matrix := make([][]float64, m+1)
+	for i := range matrix {
+		matrix[i] = make([]float64, m+n+1)
 	}
 
-	// Inisialisasi variabel basis
+	// Initialize basis variables
 	basis := make([]int, m)
 	for i := range basis {
 		basis[i] = n + i
 	}
 
-	// Mengisi matriks
+	// Fill the matrix
 	for i := 0; i < m; i++ {
 		for j := 0; j < n; j++ {
-			matriks[i+1][j] = A[i][j]
+			matrix[i+1][j] = A[i][j]
 		}
 	}
 	for i := 0; i < m; i++ {
-		matriks[i+1][m+n] = b[i]
+		matrix[i+1][m+n] = b[i]
 	}
 
-	iterasi := 0
+	iterations := 0
 	for {
-		fmt.Printf("### Iterasi %d ###\n", iterasi)
-		// Menampilkan tabel Simpleks pada setiap iterasi
-		for _, row := range matriks {
+		fmt.Printf("### Iteration %d ###\n", iterations)
+		// Display the simplex table at each iteration
+		for _, row := range matrix {
 			fmt.Println(row)
 		}
 
-		// Mencari nilai kolom dengan koefisien negatif terbesar di baris pertama
-		pivotKolom := 0
+		// Find the column with the largest negative coefficient in the first row
+		pivotColumn := 0
 		for j := 0; j < n; j++ {
-			if matriks[0][j] < matriks[0][pivotKolom] {
-				pivotKolom = j
+			if matrix[0][j] < matrix[0][pivotColumn] {
+				pivotColumn = j
 			}
 		}
 
-		// Jika koefisien dalam baris pertama adalah non-negatif,
-		// itu berarti tidak ada kemungkinan peningkatan lebih lanjut
-		// dalam nilai fungsi tujuan. Dengan kata lain, sudah
-		// mencapai solusi yang optimal
-		if matriks[0][pivotKolom] >= 0 {
-			// Solusi optimal ditemukan
+		// If all coefficients in the first row are non-negative, we have an optimal solution
+		if matrix[0][pivotColumn] >= 0 {
+			// Optimal solution found
 			break
 		}
 
-		// Cari indeks tiap baris
-		indeks := make([]float64, m)
+		// Compute the ratio for each row to find the pivot row
+		ratios := make([]float64, m)
 		for i := 0; i < m; i++ {
-			indeks[i] = matriks[i+1][m+n] / matriks[i+1][pivotKolom]
-		}
-		pivotBaris := 0
-		for i := 1; i < m; i++ {
-			if indeks[i] < indeks[pivotBaris] {
-				pivotBaris = i
+			if matrix[i+1][pivotColumn] > 0 {
+				ratios[i] = matrix[i+1][m+n] / matrix[i+1][pivotColumn]
+			} else {
+				ratios[i] = -1 // Set negative ratio for non-positive values
 			}
 		}
 
-		// Lakukan operasi baris untuk membuat elemen pivot menjadi 1
-		elemenPivot := matriks[pivotBaris+1][pivotKolom]
-		for j := 0; j <= m+n; j++ {
-			matriks[pivotBaris+1][j] /= elemenPivot
+		// Find the pivot row
+		pivotRow := 0
+		for i := 1; i < m; i++ {
+			if ratios[i] > 0 && (ratios[i] < ratios[pivotRow] || ratios[pivotRow] < 0) {
+				pivotRow = i
+			}
 		}
 
-		// Lakukan operasi baris lainnya untuk membuat elemen lain di kolom pivot menjadi 0
+		// Make the pivot element 1
+		pivotElement := matrix[pivotRow+1][pivotColumn]
+		for j := 0; j <= m+n; j++ {
+			matrix[pivotRow+1][j] /= pivotElement
+		}
+
+		// Make other elements in the pivot column zero
 		for i := 0; i <= m; i++ {
-			if i != pivotBaris+1 {
-				rasio := matriks[i][pivotKolom]
+			if i != pivotRow+1 {
+				ratio := matrix[i][pivotColumn]
 				for j := 0; j <= m+n; j++ {
-					matriks[i][j] -= rasio * matriks[pivotBaris+1][j]
+					matrix[i][j] -= ratio * matrix[pivotRow+1][j]
 				}
 			}
 		}
 
-		// Perbarui basis
-		basis[pivotBaris] = pivotKolom
+		// Update the basis
+		basis[pivotRow] = pivotColumn
 
-		iterasi++
+		iterations++
 	}
 
-	// Ekstrak solusi dari tabel
-	solusi := make([]float64, n)
+	// Extract the solution from the table
+	solution := make([]float64, n)
 	for i := 0; i < m; i++ {
 		if basis[i] < n {
-			solusi[basis[i]] = matriks[i+1][m+n]
+			solution[basis[i]] = matrix[i+1][m+n]
 		}
 	}
 
-	nilaiOptimal := -matriks[0][m+n]
+	optimalValue := -matrix[0][m+n]
 
-	return solusi, nilaiOptimal
+	return solution, optimalValue
 }
 
 func main() {
-	// Contoh masalah pemrograman linear
+	// Example linear programming problem
 	c := []float64{-9, -12}
 	A := [][]float64{
 		{12, 1},
@@ -116,10 +115,10 @@ func main() {
 	}
 	b := []float64{15, 18}
 
-	solusi, nilaiOptimal := metodeSimplex(c, A, b)
-	fmt.Println("Solusi optimal:")
-	for i, val := range solusi {
+	solution, optimalValue := simplexMethod(c, A, b)
+	fmt.Println("Optimal solution:")
+	for i, val := range solution {
 		fmt.Printf("X%d = %.2f\n", i+1, val)
 	}
-	fmt.Printf("Nilai maksimum Z = %.2f\n", nilaiOptimal)
+	fmt.Printf("Maximum value of Z = %.2f\n", optimalValue)
 }
