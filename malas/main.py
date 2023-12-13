@@ -8,7 +8,7 @@ n, mu, sigma = symbols('n mu sigma')
 xi = symbols('xi')
 
 num_data_points = 10
-mu_values = np.linspace(0, 25, 100)
+mu_values = np.linspace(0, 10, 100)
 sigma_value = 1
 X_values = np.random.rand(num_data_points)
 
