@@ -1,0 +1,47 @@
+name: "AgeNet"
+input: "data"
+input_shape {
+  dim: 1
+  dim: 3
+  dim: 227
+  dim: 227
+}
+
+# Layer yang digunakan untuk model ini
+layers {
+  name: "conv1"
+  type: "Convolution"
+  bottom: "data"
+  top: "conv1"
+  convolution_param {
+    num_output: 96
+    kernel_size: 11
+    stride: 4
+  }
+}
+
+# Layer-layer lainnya seperti ReLU, Pooling, Fully Connected, dll.
+# Disesuaikan dengan arsitektur yang digunakan dalam model usia yang spesifik
+
+# Contoh layer Fully Connected (sepenuhnya terhubung)
+layers {
+  name: "fc1"
+  type: "InnerProduct"
+  bottom: "pool5"
+  top: "fc1"
+  inner_product_param {
+    num_output: 8  # Sesuaikan dengan jumlah kategori usia yang diinginkan
+  }
+}
+
+# Layer-layer lain dan layer akhir
+
+# Layer Output
+layers {
+  name: "output"
+  type: "Softmax"
+  bottom: "fc1"
+  top: "output"
+}
+
+# Lapisan output lainnya dan detail lainnya tergantung pada arsitektur spesifik model
